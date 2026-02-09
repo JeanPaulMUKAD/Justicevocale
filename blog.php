@@ -1,4 +1,16 @@
 <?php
+// Inclure la configuration de la base de données
+include('admin/config/database.php');
+
+// Récupérer les articles depuis la base de données
+try {
+    $stmt = $pdo->query("SELECT * FROM articles ORDER BY created_at DESC");
+    $articles = $stmt->fetchAll();
+} catch(PDOException $e) {
+    $articles = [];
+    $error = "Erreur lors du chargement des articles";
+}
+
 include('assets/includes/header.php');
 ?>
 
@@ -26,12 +38,6 @@ include('assets/includes/header.php');
         opacity: 1;
         transform: translateY(0) scale(1);
     }
-    
-    /* Animation en cascade pour les articles */
-    .article-card:nth-child(1) { transition-delay: 0.1s; }
-    .article-card:nth-child(2) { transition-delay: 0.2s; }
-    .article-card:nth-child(3) { transition-delay: 0.3s; }
-    .article-card:nth-child(4) { transition-delay: 0.4s; }
     
     /* Animation pour les icônes des articles */
     .article-icon {
@@ -179,6 +185,38 @@ include('assets/includes/header.php');
     .article-card:hover .article-gradient::before {
         transform: translateX(100%);
     }
+    
+    /* Ajustement pour les images */
+    .article-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .article-card:hover .article-image {
+        transform: scale(1.05);
+    }
+    
+    /* Message quand il n'y a pas d'articles */
+    .no-articles {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .no-articles i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+    
+    /* Admin link */
+    .admin-link {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
 </style>
 
 <!-- Blog Content -->
@@ -195,118 +233,163 @@ include('assets/includes/header.php');
             </h2>
             <p class="main-description text-lg md:text-xl text-gray-700 max-w-2xl">Retrouvez ici nos derniers articles, analyses et
                 conseils pour mieux comprendre vos droits et l'actualité juridique.</p>
+            
+            <!-- Lien admin (visible seulement si connecté) -->
+            <?php if(isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true): ?>
+            <div class="mt-4">
+                <a href="admin/index.php" 
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                    <i class="fas fa-cog"></i>
+                    Administration
+                </a>
+            </div>
+            <?php endif; ?>
         </div>
     </section>
     
     <!-- Articles Section -->
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-            <!-- Article 1 -->
-            <article
-                class="article-card bg-white/95 rounded-2xl shadow-xl border border-blue-100 hover:shadow-indigo-200 transition-all duration-500 flex flex-col overflow-hidden group">
-                <div class="article-gradient h-40 bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center relative overflow-hidden">
-                    <i class="fas fa-briefcase text-white text-5xl drop-shadow article-icon"></i>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                </div>
-                <div class="p-6 flex flex-col flex-1">
-                    <span
-                        class="article-badge inline-block mb-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold group-hover:bg-indigo-200 group-hover:scale-105 transition-all duration-300">
-                        Droit du travail
-                    </span>
-                    <h3 class="article-title text-2xl font-bold text-indigo-700 mb-2 title-glow group-hover:text-indigo-800 transition-colors duration-300">
-                        Comprendre le droit du travail en RDC
-                    </h3>
-                    <p class="article-description text-gray-600 mb-4 flex-1 text-justify group-hover:text-gray-700 transition-colors duration-300">
-                        Un guide pratique pour connaître vos droits et obligations en tant que salarié ou employeur en République Démocratique du Congo.
-                    </p>
-                    <a href="article-travail.php"
-                        class="article-link mt-auto text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all duration-300">
-                        Lire l'article 
-                        <i class="fas fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
+        <?php if(!empty($articles)): ?>
+            <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+                <?php foreach($articles as $index => $article): 
+                    // Définir des couleurs par catégorie
+                    $category_colors = [
+                        'Droit du travail' => ['from-indigo-400', 'to-purple-400'],
+                        'Procédure civile' => ['from-purple-400', 'to-indigo-400'],
+                        'Droit numérique' => ['from-blue-400', 'to-purple-400'],
+                        'Immobilier' => ['from-indigo-400', 'to-blue-400'],
+                        'Droit pénal' => ['from-red-400', 'to-orange-400'],
+                        'Droit de la famille' => ['from-pink-400', 'to-rose-400'],
+                        'Droit commercial' => ['from-green-400', 'to-teal-400']
+                    ];
+                    
+                    $from_color = $category_colors[$article['category']][0] ?? 'from-indigo-400';
+                    $to_color = $category_colors[$article['category']][1] ?? 'to-purple-400';
+                    
+                    // Couleur du badge
+                    $badge_colors = [
+                        'Droit du travail' => 'bg-indigo-100 text-indigo-700',
+                        'Procédure civile' => 'bg-purple-100 text-purple-700',
+                        'Droit numérique' => 'bg-blue-100 text-blue-700',
+                        'Immobilier' => 'bg-indigo-100 text-indigo-700',
+                        'Droit pénal' => 'bg-red-100 text-red-700',
+                        'Droit de la famille' => 'bg-pink-100 text-pink-700',
+                        'Droit commercial' => 'bg-green-100 text-green-700'
+                    ];
+                    
+                    $badge_class = $badge_colors[$article['category']] ?? 'bg-gray-100 text-gray-700';
+                ?>
+                <article
+                    class="article-card bg-white/95 rounded-2xl shadow-xl border border-blue-100 hover:shadow-indigo-200 transition-all duration-500 flex flex-col overflow-hidden group"
+                    data-category="<?php echo htmlspecialchars($article['category']); ?>">
+                    <div class="article-gradient h-40 bg-gradient-to-br <?php echo $from_color . ' ' . $to_color; ?> relative overflow-hidden">
+                        <?php if(!empty($article['image_path'])): ?>
+                            <img src="<?php echo htmlspecialchars($article['image_path']); ?>" 
+                                 alt="<?php echo htmlspecialchars($article['title']); ?>"
+                                 class="article-image w-full h-full object-cover">
+                        <?php else: ?>
+                            <!-- Icône par défaut selon la catégorie -->
+                            <?php 
+                            $category_icons = [
+                                'Droit du travail' => 'fa-briefcase',
+                                'Procédure civile' => 'fa-gavel',
+                                'Droit numérique' => 'fa-shield-alt',
+                                'Immobilier' => 'fa-building',
+                                'Droit pénal' => 'fa-balance-scale',
+                                'Droit de la famille' => 'fa-users',
+                                'Droit commercial' => 'fa-chart-line'
+                            ];
+                            $icon = $category_icons[$article['category']] ?? 'fa-newspaper';
+                            ?>
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas <?php echo $icon; ?> text-white text-5xl drop-shadow article-icon"></i>
+                            </div>
+                        <?php endif; ?>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-1">
+                        <span class="article-badge inline-block mb-2 px-3 py-1 rounded-full <?php echo $badge_class; ?> text-xs font-semibold group-hover:scale-105 transition-all duration-300">
+                            <?php echo htmlspecialchars($article['category']); ?>
+                        </span>
+                        <h3 class="article-title text-2xl font-bold text-indigo-700 mb-2 title-glow group-hover:text-indigo-800 transition-colors duration-300">
+                            <?php echo htmlspecialchars($article['title']); ?>
+                        </h3>
+                        <p class="article-description text-gray-600 mb-4 flex-1 text-justify group-hover:text-gray-700 transition-colors duration-300">
+                            <?php echo htmlspecialchars($article['description']); ?>
+                        </p>
+                        <div class="flex justify-between items-center mt-auto">
+                            <a href="article-detail.php?id=<?php echo $article['id']; ?>"
+                                class="article-link text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all duration-300">
+                                Lire l'article 
+                                <i class="fas fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
+                            </a>
+                            <span class="text-xs text-gray-400">
+                                <?php echo date('d/m/Y', strtotime($article['created_at'])); ?>
+                            </span>
+                        </div>
+                    </div>
+                </article>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <!-- Message quand il n'y a pas d'articles -->
+            <div class="no-articles bg-white/80 rounded-2xl shadow-lg p-8">
+                <div class="max-w-lg mx-auto">
+                    <i class="fas fa-newspaper text-gray-300"></i>
+                    <h3 class="text-2xl font-bold text-gray-700 mb-4">Aucun article disponible</h3>
+                    <p class="text-gray-600 mb-6">Notre équipe prépare du contenu passionnant pour vous. Revenez bientôt!</p>
+                    
+                    <!-- Lien vers l'admin pour ajouter des articles -->
+                    <?php if(isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true): ?>
+                    <a href="admin/add_article.php" 
+                       class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition">
+                        <i class="fas fa-plus"></i>
+                        Créer votre premier article
                     </a>
+                    <?php endif; ?>
                 </div>
-            </article>
-            
-            <!-- Article 2 -->
-            <article
-                class="article-card bg-white/95 rounded-2xl shadow-xl border border-blue-100 hover:shadow-indigo-200 transition-all duration-500 flex flex-col overflow-hidden group">
-                <div class="article-gradient h-40 bg-gradient-to-br from-purple-400 to-indigo-400 flex items-center justify-center relative overflow-hidden">
-                    <i class="fas fa-gavel text-white text-5xl drop-shadow article-icon"></i>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                </div>
-                <div class="p-6 flex flex-col flex-1">
-                    <span
-                        class="article-badge inline-block mb-2 px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold group-hover:bg-purple-200 group-hover:scale-105 transition-all duration-300">
-                        Procédure civile
-                    </span>
-                    <h3 class="article-title text-2xl font-bold text-indigo-700 mb-2 title-glow group-hover:text-indigo-800 transition-colors duration-300">
-                        Les étapes d'un procès civil expliqué simplement
-                    </h3>
-                    <p class="article-description text-gray-600 mb-4 flex-1 text-justify group-hover:text-gray-700 transition-colors duration-300">
-                        Découvrez les différentes phases d'un procès civil, de la saisine du tribunal au jugement, en langage accessible à tous.
-                    </p>
-                    <a href="article-proces.php"
-                        class="article-link mt-auto text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all duration-300">
-                        Lire l'article 
-                        <i class="fas fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
-                    </a>
-                </div>
-            </article>
-            
-            <!-- Article 3 -->
-            <article
-                class="article-card bg-white/95 rounded-2xl shadow-xl border border-blue-100 hover:shadow-indigo-200 transition-all duration-500 flex flex-col overflow-hidden group">
-                <div class="article-gradient h-40 bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center relative overflow-hidden">
-                    <i class="fas fa-shield-alt text-white text-5xl drop-shadow article-icon"></i>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                </div>
-                <div class="p-6 flex flex-col flex-1">
-                    <span
-                        class="article-badge inline-block mb-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold group-hover:bg-blue-200 group-hover:scale-105 transition-all duration-300">
-                        Droit numérique
-                    </span>
-                    <h3 class="article-title text-2xl font-bold text-indigo-700 mb-2 title-glow group-hover:text-indigo-800 transition-colors duration-300">
-                        Droit numérique : protéger ses données personnelles
-                    </h3>
-                    <p class="article-description text-gray-600 mb-4 flex-1 text-justify group-hover:text-gray-700 transition-colors duration-300">
-                        Conseils et bonnes pratiques pour sécuriser vos informations à l'ère du numérique et comprendre la législation sur la protection des données.
-                    </p>
-                    <a href="article-numerique.php"
-                        class="article-link mt-auto text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all duration-300">
-                        Lire l'article 
-                        <i class="fas fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
-                    </a>
-                </div>
-            </article>
-            
-            <!-- Article 4 -->
-            <article
-                class="article-card bg-white/95 rounded-2xl shadow-xl border border-blue-100 hover:shadow-indigo-200 transition-all duration-500 flex flex-col overflow-hidden group md:col-span-2 lg:col-span-1">
-                <div class="article-gradient h-40 bg-gradient-to-br from-indigo-400 to-blue-400 flex items-center justify-center relative overflow-hidden">
-                    <i class="fas fa-building text-white text-5xl drop-shadow article-icon"></i>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                </div>
-                <div class="p-6 flex flex-col flex-1">
-                    <span
-                        class="article-badge inline-block mb-2 px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold group-hover:bg-indigo-200 group-hover:scale-105 transition-all duration-300">
-                        Immobilier
-                    </span>
-                    <h3 class="article-title text-2xl font-bold text-indigo-700 mb-2 title-glow group-hover:text-indigo-800 transition-colors duration-300">
-                        Questions fréquentes sur le droit immobilier
-                    </h3>
-                    <p class="article-description text-gray-600 mb-4 flex-1 text-justify group-hover:text-gray-700 transition-colors duration-300">
-                        Réponses claires aux interrogations les plus courantes concernant l'achat, la vente ou la location d'un bien immobilier.
-                    </p>
-                    <a href="article-immobilier.php"
-                        class="article-link mt-auto text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all duration-300">
-                        Lire l'article 
-                        <i class="fas fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
-                    </a>
-                </div>
-            </article>
-        </div>
+            </div>
+        <?php endif; ?>
     </section>
+    
+    <!-- Filtres par catégorie (optionnel) -->
+    <?php if(!empty($articles)): ?>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        <div class="flex flex-wrap justify-center gap-3">
+            <button class="filter-btn px-4 py-2 rounded-full bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 transition" data-category="all">
+                Tous les articles
+            </button>
+            <?php 
+            // Récupérer toutes les catégories uniques
+            $categories = [];
+            foreach($articles as $article) {
+                if(!in_array($article['category'], $categories)) {
+                    $categories[] = $article['category'];
+                }
+            }
+            
+            foreach($categories as $category): 
+                $category_class = str_replace(' ', '-', strtolower($category));
+            ?>
+            <button class="filter-btn px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition" data-category="<?php echo htmlspecialchars($category_class); ?>">
+                <?php echo htmlspecialchars($category); ?>
+            </button>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
 </main>
+
+<!-- Lien admin flottant -->
+<?php if(isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true): ?>
+<div class="admin-link">
+    <a href="admin/index.php" 
+       class="flex items-center justify-center w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 hover:shadow-xl transition-all"
+       title="Administration">
+        <i class="fas fa-cog"></i>
+    </a>
+</div>
+<?php endif; ?>
 
 <script>
 // Animation au défilement pour le blog
@@ -416,26 +499,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 background-position: -200% 0;
             }
         }
-        
-        /* Animation pour le contenu des articles */
-        .article-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Effet de profondeur */
-        .article-card {
-            perspective: 1000px;
-        }
-        
-        .article-card > div {
-            transform-style: preserve-3d;
-            transition: transform 0.6s;
-        }
-        
-        .article-card:hover > div:first-child {
-            transform: translateZ(20px);
-        }
     `;
     document.head.appendChild(style);
     
@@ -477,21 +540,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon.style.transform = 'translateX(0) rotate(0)';
             }
         });
-        
-        // Animation au clic
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const href = this.getAttribute('href');
-            
-            // Animation de clic
-            this.style.transform = 'scale(0.95)';
-            
-            // Restaurer et naviguer
-            setTimeout(() => {
-                this.style.transform = '';
-                window.location.href = href;
-            }, 200);
-        });
     });
     
     // Animation pour les badges
@@ -525,6 +573,49 @@ document.addEventListener('DOMContentLoaded', function() {
         if (bg) {
             bg.style.backgroundPosition = `center ${rate}px`;
         }
+    });
+    
+    // Filtrage par catégorie
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const articles = document.querySelectorAll('.article-card');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            
+            // Mettre à jour le bouton actif
+            filterButtons.forEach(btn => {
+                btn.classList.remove('bg-indigo-500', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            this.classList.remove('bg-gray-100', 'text-gray-700');
+            this.classList.add('bg-indigo-500', 'text-white');
+            
+            // Filtrer les articles
+            articles.forEach(article => {
+                if (category === 'all') {
+                    article.style.display = 'block';
+                    setTimeout(() => {
+                        article.classList.add('visible');
+                    }, 100);
+                } else {
+                    const articleCategory = article.getAttribute('data-category');
+                    const formattedCategory = articleCategory.toLowerCase().replace(/\s+/g, '-');
+                    
+                    if (formattedCategory === category) {
+                        article.style.display = 'block';
+                        setTimeout(() => {
+                            article.classList.add('visible');
+                        }, 100);
+                    } else {
+                        article.classList.remove('visible');
+                        setTimeout(() => {
+                            article.style.display = 'none';
+                        }, 300);
+                    }
+                }
+            });
+        });
     });
 });
 
