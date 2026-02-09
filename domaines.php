@@ -151,21 +151,14 @@ include('assets/includes/header.php');
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
         <?php
         $domaines = [
-            [
-                'id' => 'avocat',
-                'nom' => 'Avocat',
-                'icon' => 'user-tie',
-                'color' => 'red',
-                'description' => 'Rôle de l\'avocat, conseils juridiques, défense des droits, accompagnement et représentation en justice.',
-                'delay' => 0.1
-            ],
+            
             [
                 'id' => 'loi',
                 'nom' => 'Loi',
                 'icon' => 'gavel',
                 'color' => 'yellow',
                 'description' => 'Explication des lois, décryptage des textes législatifs et réglementaires, veille juridique.',
-                'delay' => 0.2
+                'delay' => 0.1
             ],
             [
                 'id' => 'immobilier',
@@ -173,7 +166,7 @@ include('assets/includes/header.php');
                 'icon' => 'home',
                 'color' => 'purple',
                 'description' => 'Achat, vente, location, copropriété : tout savoir sur les droits et obligations liés à l\'immobilier.',
-                'delay' => 0.3
+                'delay' => 0.2
             ],
             [
                 'id' => 'numerique',
@@ -181,7 +174,7 @@ include('assets/includes/header.php');
                 'icon' => 'laptop-code',
                 'color' => 'green',
                 'description' => 'Protection des données, cybersécurité, contrats informatiques, droits et responsabilités sur Internet.',
-                'delay' => 0.4
+                'delay' => 0.3
             ],
             [
                 'id' => 'contrat',
@@ -189,7 +182,7 @@ include('assets/includes/header.php');
                 'icon' => 'file-signature',
                 'color' => 'indigo',
                 'description' => 'Rédaction, analyse et gestion des contrats civils, commerciaux et numériques.',
-                'delay' => 0.5
+                'delay' => 0.4
             ],
             [
                 'id' => 'entreprise',
@@ -197,8 +190,16 @@ include('assets/includes/header.php');
                 'icon' => 'building',
                 'color' => 'blue',
                 'description' => 'Création, gestion, fiscalité, responsabilité et vie juridique de l\'entreprise.',
-                'delay' => 0.6
+                'delay' => 0.5
             ],
+            [
+                'id' => 'avocat',
+                'nom' => 'Avocat',
+                'icon' => 'user-tie',
+                'color' => 'red',
+                'description' => 'Rôle de l\'avocat, conseils juridiques, défense des droits, accompagnement et représentation en justice.',
+                'delay' => 0.6
+            ]
         ];
         
         foreach ($domaines as $domaine):

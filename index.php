@@ -2,8 +2,6 @@
 include('assets/includes/header.php');
 ?>
 
-<!-- Indicateur de chargement -->
-<script src="assets/js/loading.js"></script>
 
 <style>
     /* Animations pour les sections */
@@ -232,9 +230,8 @@ include('assets/includes/header.php');
                     <h1 class="text-3xl md:text-4xl font-bold mb-4 animate-text">La Justice Vocale — Le droit à la
                         portée de tous</h1>
                     <p class="text-lg opacity-90 mb-6 text-justify leading-relaxed">Un espace d'information et de
-                        vulgarisation du droit. Nos articles expliquent clairement les énumérations pour les
-                        entrepreneurs juristes et toute personne curieuse souhaitant mieux appréhender la loi ainsi que
-                        les thématiques juridiques.</p>
+                        vulgarisation du droit. Nos articles expliquent clairement les notions juridiques à l'intention de tout entrepreneur, 
+                        juriste ou toute personne curieuse souhaitant mieux appréhender la loi ainsi que les thématiques juridiques.</p>
                     <div class="flex flex-col sm:flex-row gap-4">
                         <a href="domaines.php"
                             class="animated-link inline-flex items-center justify-center px-5 py-3 bg-white text-indigo-600 font-semibold rounded-lg shadow-md hover:bg-gray-100 transition-all duration-300 transform hover:-translate-y-1">
