@@ -232,13 +232,7 @@ include('assets/includes/header.php');
                 <?php echo $domaine['description']; ?>
             </p>
             
-            <!-- Indicateur de survol -->
-            <div class="mt-6 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-                <div class="flex items-center justify-center text-<?php echo $domaine['color']; ?>-500 text-sm font-medium">
-                    <span class="mr-2">En savoir plus</span>
-                    <i class="fas fa-arrow-right transform transition-transform duration-300 group-hover:translate-x-2"></i>
-                </div>
-            </div>
+           
             
             <!-- Effet de lumière au survol -->
             <div class="absolute inset-0 bg-gradient-to-br from-<?php echo $domaine['color']; ?>-500/0 via-transparent to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"></div>
